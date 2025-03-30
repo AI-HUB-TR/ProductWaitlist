@@ -369,6 +369,12 @@ export async function getModelDetailResponse(modelId: string): Promise<{ feature
 function getFallbackResponse(message: string, modelType: string = "chat"): string {
   const normalizedMessage = message.toLowerCase();
   
+  // Görsel modeliyle ilgili sorgu
+  if (modelType === "image") {
+    // Verilen prompt ile alakalı bir görsel oluşturulamadı yanıtı
+    return "Belirttiğiniz görsel şu anda oluşturulamadı. Lütfen farklı bir açıklama ile tekrar deneyin veya daha sonra tekrar deneyin. Örnek olarak 'Mavi gökyüzünde uçan kuşlar' veya 'Deniz kenarında günbatımı' gibi açıklamaları deneyebilirsiniz.";
+  }
+  
   // Model türüne göre farklı yanıtlar
   if (modelType === "chat") {
     // Genel selamlaşmalar

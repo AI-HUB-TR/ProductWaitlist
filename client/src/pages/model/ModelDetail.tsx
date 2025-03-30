@@ -53,11 +53,16 @@ export default function ModelDetail() {
   // Sohbet API'sine mesaj gönderme
   const chatMutation = useMutation({
     mutationFn: async (text: string) => {
+      // Model ID'sine göre doğru model tipini belirle
+      let modelType = "chat";
+      if (model?.id === "translate-ai") modelType = "translation";
+      else if (model?.id === "summary-ai") modelType = "summarization";
+      else if (model?.id === "code-ai") modelType = "code";
+      else if (model?.id === "image-ai") modelType = "image";
+      
       const res = await apiRequest("POST", "/api/chat", {
         message: text,
-        modelType: model?.id === "translate-ai" ? "translation" : 
-                  model?.id === "summary-ai" ? "summarization" : 
-                  model?.id === "code-ai" ? "code" : "chat"
+        modelType: modelType
       });
       const data = await res.json();
       return data.message;
