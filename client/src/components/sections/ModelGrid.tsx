@@ -13,8 +13,8 @@ export default function ModelGrid() {
     : aiModels.filter(model => model.category === selectedCategory);
 
   return (
-    <section className="py-16 px-4 max-w-7xl mx-auto model-grid-section">
-      <div className="mb-6 text-center">
+    <section className="py-6 px-4 max-w-7xl mx-auto model-grid-section">
+      <div className="mb-4 text-center">
         <p className="text-base text-muted-foreground max-w-3xl mx-auto">
           İstediğiniz yapay zeka modelini seçin ve hemen kullanmaya başlayın.
         </p>

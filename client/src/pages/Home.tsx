@@ -8,13 +8,13 @@ import Hero from "@/components/sections/Hero";
 export default function Home() {
   return (
     <div className="min-h-screen">
-      <Hero />
-      <div className="bg-white pt-6 shadow-sm">
+      <div className="bg-white shadow-sm">
         <ModelGrid />
       </div>
       <HowItWorks />
       <Features />
       <FAQ />
+      <Hero />
       <ContactForm />
     </div>
   );
