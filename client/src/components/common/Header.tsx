@@ -89,17 +89,19 @@ export default function Header() {
       <div className="bg-[#1565C0] text-white py-1">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center">
-              <span className="mr-2 text-xs font-medium">Başlangıç</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2 text-xs font-medium">2/8 Başarı</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2 text-xs font-medium">Uzman</span>
-            </div>
-            <div className="flex items-center">
-              <span className="mr-2 text-xs font-medium">Son Başarı: 💬 İlk Sohbet</span>
+            <div className="hidden sm:flex items-center space-x-4">
+              <div className="flex items-center">
+                <span className="mr-2 text-xs font-medium">Başlangıç</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2 text-xs font-medium">2/8 Başarı</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2 text-xs font-medium">Uzman</span>
+              </div>
+              <div className="hidden md:flex items-center">
+                <span className="mr-2 text-xs font-medium">Son Başarı: 💬 İlk Sohbet</span>
+              </div>
             </div>
           </div>
           
@@ -161,23 +163,26 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="border-[#1565C0] text-[#1565C0]"
-                  onClick={handleLogin}
-                >
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Giriş Yap
-                </Button>
-                <Button 
-                  className="bg-[#1565C0] hover:bg-[#0D47A1] text-white"
-                  onClick={handleLogin}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Üye Ol
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    className="bg-[#1565C0] hover:bg-[#0D47A1] text-white"
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Hesap
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleLogin}>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    <span>Giriş Yap</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogin}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>Üye Ol</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
           
@@ -228,20 +233,15 @@ export default function Header() {
                 <>
                   <div className="mb-2 text-sm text-muted-foreground">Üyelik İşlemleri</div>
                   <Button 
-                    variant="outline" 
-                    className="w-full justify-start mb-2"
-                    onClick={handleLogin}
-                  >
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Giriş Yap
-                  </Button>
-                  <Button 
-                    className="w-full justify-start bg-[#1565C0] hover:bg-[#0D47A1]"
+                    className="w-full justify-start bg-[#1565C0] hover:bg-[#0D47A1] text-white mb-2"
                     onClick={handleLogin}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Üye Ol
+                    Hesap İşlemleri
                   </Button>
+                  <div className="text-xs text-muted-foreground mt-2 text-center">
+                    Giriş yapmak veya yeni üyelik oluşturmak için tıklayın
+                  </div>
                 </>
               )}
             </div>

@@ -19,6 +19,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get response from Hugging Face API
       const response = await getHuggingFaceResponse(message, modelType || "chat");
       
+      // Özel görsel yanıtı işleme
+      if (modelType === "image") {
+        // Görsel oluşturma hatası varsa
+        if (response === "API_KEY_MISSING" || response === "API_ERROR" || response === "ERROR_GENERATING_IMAGE") {
+          return res.status(400).json({ 
+            message: "Görsel oluşturulamadı. Lütfen farklı bir açıklama deneyin veya daha sonra tekrar deneyin.",
+            error: response
+          });
+        }
+
+        // Base64 tam değil - kırpılmış bir yanıt mı kontrol et
+        if (response && response.startsWith("data:image/jpeg;base64,") && response.length < 500) {
+          return res.status(400).json({ 
+            message: "Görsel veri eksik. Lütfen daha sonra tekrar deneyin.",
+            error: "INCOMPLETE_IMAGE_DATA"
+          });
+        }
+      }
+      
       return res.status(200).json({ message: response });
     } catch (error) {
       console.error("Chat API error:", error);
