@@ -12,7 +12,10 @@ import {
   Home,
   HelpCircle,
   MessageSquare,
-  Settings
+  Settings,
+  BookOpen,
+  Sparkles,
+  Globe
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,6 +25,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LanguageSwitcher } from "@/components/translation/LanguageSwitcher";
+import TechConfidenceMeter from "@/components/common/TechConfidenceMeter";
 
 export default function Header() {
   const [location] = useLocation();
@@ -40,6 +45,7 @@ export default function Header() {
     { name: "Anasayfa", id: "anasayfa", path: "/", icon: <Home className="h-4 w-4 mr-2" /> },
     { name: "Nasıl Çalışır?", id: "nasil-calisir", path: "/#nasil-calisir", icon: <HelpCircle className="h-4 w-4 mr-2" /> },
     { name: "Hafıza Oyunu", id: "games", path: "/games/memory", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
+    { name: "Dijital Beceriler", id: "learning", path: "/learning/skills", icon: <BookOpen className="h-4 w-4 mr-2" /> },
     { name: "Topluluk", id: "community", path: "/community", icon: <User className="h-4 w-4 mr-2" /> },
     { name: "SSS", id: "sss", path: "/#sss", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
     { name: "İletişim", id: "iletisim", path: "/#iletisim", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
@@ -100,6 +106,10 @@ export default function Header() {
         </nav>
         
         <div className="hidden md:flex items-center space-x-3">
+          <LanguageSwitcher variant="icon" />
+          
+          <TechConfidenceMeter size="sm" showTitle={false} className="w-32 mr-2" />
+          
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

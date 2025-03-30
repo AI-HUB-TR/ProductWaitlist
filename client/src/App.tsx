@@ -13,8 +13,11 @@ import Footer from "@/components/common/Footer";
 import SpeechAssistant from "@/components/floating/SpeechAssistant";
 import MemoryGame from "@/pages/games/MemoryGame";
 import CommunityPage from "@/pages/community/CommunityPage";
+import SkillQuestPage from "@/pages/learning/SkillQuestPage";
 import AIMascot from "@/components/mascot/AIMascot";
 import HelpButton from "@/components/common/HelpButton";
+import { SoundProvider } from "@/hooks/use-sound-effects";
+import { AutoTranslateProvider } from "@/components/translation/LanguageSwitcher";
 
 function Router() {
   const [loaded, setLoaded] = useState(false);
@@ -80,6 +83,7 @@ function Router() {
           <Route path="/admin" component={Admin} />
           <Route path="/games/memory" component={MemoryGame} />
           <Route path="/community" component={CommunityPage} />
+          <Route path="/learning/skills" component={SkillQuestPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -94,8 +98,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <Toaster />
+      <SoundProvider>
+        <AutoTranslateProvider>
+          <Router />
+          <Toaster />
+        </AutoTranslateProvider>
+      </SoundProvider>
     </QueryClientProvider>
   );
 }
