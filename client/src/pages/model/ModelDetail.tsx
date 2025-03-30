@@ -45,7 +45,7 @@ export default function ModelDetail() {
   
   // API'den model detaylarını getir
   const { data: modelDetails, isLoading: isLoadingDetails } = useQuery<ModelResponse>({
-    queryKey: [`/api/models/${id}`],
+    queryKey: [`/api/models/${id?.replace('-ai', '')}`],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!id,
   });

@@ -18,7 +18,7 @@ export const aiModels: AIModel[] = [
     icon: "message-circle",
     category: "Metin",
     color: "bg-gradient-to-br from-blue-500 to-violet-600",
-    url: "/models/chat"
+    url: "/models/chat-ai"
   },
   {
     id: "image-ai",
@@ -27,7 +27,7 @@ export const aiModels: AIModel[] = [
     icon: "image",
     category: "Görsel",
     color: "bg-gradient-to-br from-pink-500 to-orange-500",
-    url: "/models/image"
+    url: "/models/image-ai"
   },
   {
     id: "code-ai",
@@ -36,7 +36,7 @@ export const aiModels: AIModel[] = [
     icon: "code",
     category: "Kod",
     color: "bg-gradient-to-br from-emerald-500 to-teal-600",
-    url: "/models/code"
+    url: "/models/code-ai"
   },
   {
     id: "calculator-ai",
@@ -45,7 +45,7 @@ export const aiModels: AIModel[] = [
     icon: "calculator",
     category: "Matematik",
     color: "bg-gradient-to-br from-yellow-400 to-amber-600",
-    url: "/models/calculator"
+    url: "/models/calculator-ai"
   },
   {
     id: "game-ai",
@@ -54,7 +54,7 @@ export const aiModels: AIModel[] = [
     icon: "gamepad-2",
     category: "Eğlence",
     color: "bg-gradient-to-br from-indigo-500 to-purple-600",
-    url: "/models/game"
+    url: "/models/game-ai"
   },
   {
     id: "translate-ai",
@@ -63,7 +63,7 @@ export const aiModels: AIModel[] = [
     icon: "languages",
     category: "Metin",
     color: "bg-gradient-to-br from-cyan-500 to-blue-600",
-    url: "/models/translate"
+    url: "/models/translate-ai"
   },
   {
     id: "audio-ai",
@@ -72,7 +72,7 @@ export const aiModels: AIModel[] = [
     icon: "music",
     category: "Ses",
     color: "bg-gradient-to-br from-red-500 to-pink-600",
-    url: "/models/audio"
+    url: "/models/audio-ai"
   },
   {
     id: "summary-ai",
@@ -81,7 +81,7 @@ export const aiModels: AIModel[] = [
     icon: "file-text",
     category: "Metin",
     color: "bg-gradient-to-br from-green-500 to-emerald-600",
-    url: "/models/summary"
+    url: "/models/summary-ai"
   },
   {
     id: "education-ai",
@@ -90,7 +90,7 @@ export const aiModels: AIModel[] = [
     icon: "book-open",
     category: "Eğitim",
     color: "bg-gradient-to-br from-blue-400 to-indigo-600",
-    url: "/models/education"
+    url: "/models/education-ai"
   }
 ];
 

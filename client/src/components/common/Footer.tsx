@@ -18,7 +18,7 @@ export default function Footer() {
               ZekiBot
             </h2>
             <p className="text-lg max-w-md">
-              Yaşlılar için tasarlanmış, kolay kullanımlı yapay zeka asistanı. 
+              Teknoloji ile yeni tanışanlar için tasarlanmış, kolay kullanımlı yapay zeka asistanı. 
               Sorularınıza basit ve anlaşılır yanıtlar alın.
             </p>
           </div>

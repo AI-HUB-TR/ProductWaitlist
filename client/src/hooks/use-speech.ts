@@ -5,6 +5,7 @@ export function useSpeech() {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -97,6 +98,11 @@ export function useSpeech() {
     }
   }, []);
   
+  // Ses asistanını aç/kapat
+  const toggleVoice = useCallback(() => {
+    setIsVoiceEnabled(prev => !prev);
+  }, []);
+  
   return {
     speak,
     pauseSpeech,
@@ -105,6 +111,8 @@ export function useSpeech() {
     isSpeaking,
     isPaused,
     voices,
+    isVoiceEnabled,
+    toggleVoice,
     supported: typeof window !== 'undefined' && !!window.speechSynthesis
   };
 }

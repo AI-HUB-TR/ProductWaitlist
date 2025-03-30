@@ -13,7 +13,7 @@ export default function SiteSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     siteName: 'ZekiBot',
-    siteDescription: 'Türkiye\'nin ilk tamamen Türkçe, yaşlılar ve teknoloji ile yeni tanışanlar için tasarlanmış yapay zeka platformu',
+    siteDescription: 'Türkiye\'nin ilk tamamen Türkçe, teknoloji ile yeni tanışanlar için tasarlanmış yapay zeka platformu',
     contactEmail: 'iletisim@zekibot.com',
     contactPhone: '0212 123 45 67',
     footerText: '© 2025 ZekiBot. Tüm hakları saklıdır.'
