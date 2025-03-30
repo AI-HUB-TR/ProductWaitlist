@@ -10,7 +10,7 @@ const MODEL_URLS: Record<string, string> = {
   chat: CHAT_MODEL_URL,
   text: TEXT_GENERATION_MODEL_URL,
   code: "https://api-inference.huggingface.co/models/Salesforce/codegen-2B-mono",
-  image: "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2",
+  image: "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0",
   translation: "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-tr-en", // Türkçe-İngilizce çeviri
   summarization: "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
 };
@@ -34,6 +34,40 @@ export async function getHuggingFaceResponse(
   modelType: string = "chat"
 ): Promise<string> {
   try {
+    // Görsel modeli için özel işleme - doğrudan API'ye gönder
+    if (modelType === "image") {
+      try {
+        if (!HUGGING_FACE_API_KEY) {
+          console.warn("Hugging Face API key is not set for image generation.");
+          return "API_KEY_MISSING";
+        }
+        
+        const modelUrl = MODEL_URLS[modelType];
+        
+        const response = await fetch(modelUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ inputs: message }),
+        });
+        
+        if (!response.ok) {
+          console.warn(`Image API responded with status: ${response.status}`);
+          return "API_ERROR";
+        }
+        
+        // Görsel yanıtı için bir base64 dizesi veya URL döndür
+        const buffer = await response.arrayBuffer();
+        const base64 = Buffer.from(buffer).toString('base64');
+        return `data:image/jpeg;base64,${base64}`;
+      } catch (error) {
+        console.error("Error with image generation:", error);
+        return "ERROR_GENERATING_IMAGE";
+      }
+    }
+    
     // Belirli anahtar kelimeleri kontrol et ve öncelikle yerel yanıtları kullanmayı dene
     const normalizedMessage = message.toLowerCase();
     if (modelType === "chat") {
@@ -371,8 +405,9 @@ function getFallbackResponse(message: string, modelType: string = "chat"): strin
   
   // Görsel modeliyle ilgili sorgu
   if (modelType === "image") {
-    // Verilen prompt ile alakalı bir görsel oluşturulamadı yanıtı
-    return "Belirttiğiniz görsel şu anda oluşturulamadı. Lütfen farklı bir açıklama ile tekrar deneyin veya daha sonra tekrar deneyin. Örnek olarak 'Mavi gökyüzünde uçan kuşlar' veya 'Deniz kenarında günbatımı' gibi açıklamaları deneyebilirsiniz.";
+    // Hugging Face API'sine gönderilecek şekilde düzgün bir yanıt dönmez
+    // Arayüz bu durumu tespit edip bir hata gösterecektir
+    return "ERROR_GENERATING_IMAGE";
   }
   
   // Model türüne göre farklı yanıtlar
