@@ -14,12 +14,9 @@ export default function ModelGrid() {
 
   return (
     <section className="py-16 px-4 max-w-7xl mx-auto model-grid-section">
-      <div className="mb-10 text-center">
-        <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
-          ZekiBot AI Modelleri
-        </h2>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          ZekiBot üzerinde kullanabileceğiniz ücretsiz yapay zeka modelleri. İstediğiniz modeli seçin ve hemen kullanmaya başlayın.
+      <div className="mb-6 text-center">
+        <p className="text-base text-muted-foreground max-w-3xl mx-auto">
+          İstediğiniz yapay zeka modelini seçin ve hemen kullanmaya başlayın.
         </p>
       </div>
 

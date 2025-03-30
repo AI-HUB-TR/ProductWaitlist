@@ -8,6 +8,22 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-[#f7f5f0] text-foreground text-[15px];
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl font-bold;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl font-bold;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl font-bold;
+  }
+  
+  p {
+    @apply text-sm md:text-base leading-relaxed;
   }
 }
