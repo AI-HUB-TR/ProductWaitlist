@@ -16,10 +16,10 @@ export default function ModelGrid() {
     <section className="py-16 px-4 max-w-7xl mx-auto model-grid-section">
       <div className="mb-10 text-center">
         <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
-          BilgeZeka AI Modelleri
+          ZekiBot AI Modelleri
         </h2>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          BilgeZeka üzerinde kullanabileceğiniz ücretsiz yapay zeka modelleri. İstediğiniz modeli seçin ve hemen kullanmaya başlayın.
+          ZekiBot üzerinde kullanabileceğiniz ücretsiz yapay zeka modelleri. İstediğiniz modeli seçin ve hemen kullanmaya başlayın.
         </p>
       </div>
 

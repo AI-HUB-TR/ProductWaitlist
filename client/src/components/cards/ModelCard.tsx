@@ -29,27 +29,27 @@ export default function ModelCard({ model }: ModelCardProps) {
   const Icon = iconMap[model.icon as keyof typeof iconMap] || HelpCircle;
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg border-2 hover:scale-[1.02]">
-      <CardContent className="flex-grow p-6 pb-2">
-        <div className={`w-14 h-14 ${model.color} rounded-xl mb-4 flex items-center justify-center`}>
-          <Icon className="w-8 h-8 text-white" />
-        </div>
+    <Link href={model.url} className="block h-full">
+      <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg border-2 hover:scale-[1.02] cursor-pointer">
+        <CardContent className="flex-grow p-6 pb-2">
+          <div className={`w-14 h-14 ${model.color} rounded-xl mb-4 flex items-center justify-center`}>
+            <Icon className="w-8 h-8 text-white" />
+          </div>
+          
+          <h3 className="text-2xl font-bold mb-2">{model.name}</h3>
+          <div className="bg-muted/40 text-xs font-medium px-2 py-1 rounded-full inline-block mb-3">
+            {model.category}
+          </div>
+          <p className="text-muted-foreground text-sm">{model.description}</p>
+        </CardContent>
         
-        <h3 className="text-2xl font-bold mb-2">{model.name}</h3>
-        <div className="bg-muted/40 text-xs font-medium px-2 py-1 rounded-full inline-block mb-3">
-          {model.category}
-        </div>
-        <p className="text-muted-foreground text-sm">{model.description}</p>
-      </CardContent>
-      
-      <CardFooter className="p-6 pt-2">
-        <Link href={model.url}>
+        <CardFooter className="p-6 pt-2">
           <Button className="w-full" variant="outline">
             Keşfet
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </Link>
   );
 }

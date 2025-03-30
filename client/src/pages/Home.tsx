@@ -8,10 +8,10 @@ import ContactForm from "@/components/sections/ContactForm";
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      <Hero />
       <div className="bg-white">
         <ModelGrid />
       </div>
+      <Hero />
       <HowItWorks />
       <Features />
       <FAQ />

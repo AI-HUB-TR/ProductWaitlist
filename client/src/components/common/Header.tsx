@@ -36,8 +36,8 @@ export default function Header() {
     <header className="bg-white shadow-md sticky top-0 z-10">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center">
-          <span className="material-icons text-[#1565C0] text-4xl mr-2">smart_toy</span>
-          <h1 className="text-2xl font-bold text-[#1565C0]">Akıllı Yardımcı</h1>
+          <span className="material-icons text-primary text-4xl mr-2">smart_toy</span>
+          <h1 className="text-2xl font-bold text-primary">ZekiBot</h1>
         </Link>
         
         <nav className="hidden md:block">

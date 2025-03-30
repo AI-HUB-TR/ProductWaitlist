@@ -8,6 +8,7 @@ import ChatDemo from "@/pages/ChatDemo";
 import ModelDetail from "@/pages/model/ModelDetail";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import SpeechAssistant from "@/components/floating/SpeechAssistant";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
         </Switch>
       </main>
       <Footer />
+      <SpeechAssistant />
     </div>
   );
 }

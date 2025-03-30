@@ -13,7 +13,7 @@ export default function Hero() {
     <section id="anasayfa" className="py-20 bg-gradient-to-b from-white to-[#f8f9ff]">
       <div className="container mx-auto px-4 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary/90 to-primary/60 text-transparent bg-clip-text">
-          BilgeZeka AI Platformu
+          ZekiBot AI Platformu
         </h1>
         <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-muted-foreground">
           Türkiye'nin ilk tamamen Türkçe, yaşlılar ve teknoloji ile yeni tanışanlar için
