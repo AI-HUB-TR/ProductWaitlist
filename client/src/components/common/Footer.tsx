@@ -15,7 +15,7 @@ export default function Footer() {
           <div className="mb-8 md:mb-0">
             <h2 className="text-2xl font-bold mb-4 flex items-center">
               <span className="material-icons mr-2">smart_toy</span>
-              Akıllı Yardımcı
+              ZekiBot
             </h2>
             <p className="text-lg max-w-md">
               Yaşlılar için tasarlanmış, kolay kullanımlı yapay zeka asistanı. 
@@ -92,7 +92,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-white/30 mt-8 pt-8 text-center">
-          <p className="text-lg">&copy; {new Date().getFullYear()} Akıllı Yardımcı. Tüm hakları saklıdır.</p>
+          <p className="text-lg">&copy; {new Date().getFullYear()} ZekiBot. Tüm hakları saklıdır.</p>
         </div>
       </div>
     </footer>

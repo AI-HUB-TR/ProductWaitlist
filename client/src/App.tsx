@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import ChatDemo from "@/pages/ChatDemo";
 import ModelDetail from "@/pages/model/ModelDetail";
+import Admin from "@/pages/admin/Admin";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
 import SpeechAssistant from "@/components/floating/SpeechAssistant";
@@ -19,6 +20,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/chat-demo" component={ChatDemo} />
           <Route path="/models/:id" component={ModelDetail} />
+          <Route path="/admin" component={Admin} />
           <Route component={NotFound} />
         </Switch>
       </main>

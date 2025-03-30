@@ -21,9 +21,16 @@ export default function Header() {
     { name: "Nasıl Çalışır?", id: "nasil-calisir", path: "/#nasil-calisir" },
     { name: "Sık Sorulan Sorular", id: "sss", path: "/#sss" },
     { name: "İletişim", id: "iletisim", path: "/#iletisim" },
+    { name: "Yönetim Paneli", id: "admin", path: "/admin" },
   ];
 
-  const handleNavClick = (id: string) => {
+  const handleNavClick = (id: string, path: string) => {
+    if (id === "admin") {
+      // Navigate to admin page directly
+      window.location.href = path;
+      return;
+    }
+    
     if (location !== "/") {
       // Navigate to home and then scroll to section
       window.location.href = `/#${id}`;
@@ -36,8 +43,8 @@ export default function Header() {
     <header className="bg-white shadow-md sticky top-0 z-10">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center">
-          <span className="material-icons text-primary text-4xl mr-2">smart_toy</span>
-          <h1 className="text-2xl font-bold text-primary">ZekiBot</h1>
+          <span className="material-icons text-[#1565C0] text-4xl mr-2">smart_toy</span>
+          <h1 className="text-3xl font-bold text-[#1565C0]">ZekiBot</h1>
         </Link>
         
         <nav className="hidden md:block">
@@ -45,7 +52,7 @@ export default function Header() {
             {navItems.map((item) => (
               <li key={item.id}>
                 <button 
-                  onClick={() => handleNavClick(item.id)}
+                  onClick={() => handleNavClick(item.id, item.path)}
                   className="text-lg font-semibold hover:text-[#1565C0] transition-colors"
                 >
                   {item.name}
@@ -75,7 +82,7 @@ export default function Header() {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => handleNavClick(item.id)}
+                  onClick={() => handleNavClick(item.id, item.path)}
                   className="text-lg font-semibold py-2 hover:text-[#1565C0] transition-colors text-left"
                 >
                   {item.name}
