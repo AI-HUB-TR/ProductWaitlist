@@ -1,16 +1,17 @@
 import fetch from "node-fetch";
 
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY || "";
-const CHAT_MODEL_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
-const TEXT_GENERATION_MODEL_URL = "https://api-inference.huggingface.co/models/bigscience/bloom";
+// Türkçe modellere geçiş
+const CHAT_MODEL_URL = "https://api-inference.huggingface.co/models/dbmdz/bert-base-turkish-cased";
+const TEXT_GENERATION_MODEL_URL = "https://api-inference.huggingface.co/models/dbmdz/convbert-base-turkish-cased";
 
-// Model türlerine göre URL seçimi
+// Model türlerine göre URL seçimi (Türkçe odaklı modeller)
 const MODEL_URLS: Record<string, string> = {
   chat: CHAT_MODEL_URL,
   text: TEXT_GENERATION_MODEL_URL,
   code: "https://api-inference.huggingface.co/models/Salesforce/codegen-2B-mono",
   image: "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2",
-  translation: "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-tr",
+  translation: "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-tr-en", // Türkçe-İngilizce çeviri
   summarization: "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
 };
 
@@ -27,12 +28,26 @@ interface TranslationTextResponse {
   translation_text: string;
 }
 
-// Bu fonksiyon Hugging Face API ile iletişim kurar
+// Bu fonksiyon Hugging Face API ile iletişim kurar veya hazır yanıtları kullanır
 export async function getHuggingFaceResponse(
   message: string, 
   modelType: string = "chat"
 ): Promise<string> {
   try {
+    // Belirli anahtar kelimeleri kontrol et ve öncelikle yerel yanıtları kullanmayı dene
+    const normalizedMessage = message.toLowerCase();
+    if (modelType === "chat") {
+      // Selamlaşma mesajları için her zaman yerel yanıtları kullan (daha doğal Türkçe için)
+      if (normalizedMessage.includes("merhaba") || 
+          normalizedMessage.includes("selam") || 
+          normalizedMessage.includes("nasılsın") || 
+          normalizedMessage.includes("naber") || 
+          normalizedMessage.includes("teşekkür") || 
+          normalizedMessage.includes("sağol")) {
+        return getFallbackResponse(message, modelType);
+      }
+    }
+    
     // API anahtarı yoksa, yerel yanıtlar kullan
     if (!HUGGING_FACE_API_KEY) {
       console.warn("Hugging Face API key is not set. Using fallback responses.");
@@ -58,40 +73,73 @@ export async function getHuggingFaceResponse(
     const data = await response.json();
     
     // Yanıt formatını model türüne göre işle
+    let responseText = "";
     if (modelType === "chat" || modelType === "text") {
       if (Array.isArray(data) && data.length > 0) {
         const item = data[0] as GeneratedTextResponse;
         if (item && item.generated_text) {
-          return item.generated_text;
+          responseText = item.generated_text;
         }
       } else if (data && typeof data === 'object') {
         const item = data as GeneratedTextResponse;
         if (item.generated_text) {
-          return item.generated_text;
+          responseText = item.generated_text;
         }
       }
     } else if (modelType === "summarization") {
       if (Array.isArray(data) && data.length > 0) {
         const item = data[0] as SummaryTextResponse;
         if (item && item.summary_text) {
-          return item.summary_text;
+          responseText = item.summary_text;
         }
       }
     } else if (modelType === "translation") {
       if (Array.isArray(data) && data.length > 0) {
         const item = data[0] as TranslationTextResponse;
         if (item && item.translation_text) {
-          return item.translation_text;
+          responseText = item.translation_text;
         }
       }
     }
     
-    console.warn("Unexpected response format from Hugging Face API:", data);
-    return "Üzgünüm, cevap formatı beklenmedik bir şekildeydi. Lütfen daha sonra tekrar deneyiniz.";
+    // API yanıtı boş veya çok kısa ise yerel yanıtlar kullan
+    if (!responseText || responseText.length < 5) {
+      console.warn("Empty or very short response from API, using fallback responses.");
+      return getFallbackResponse(message, modelType);
+    }
+    
+    // API yanıtı İngilizce ise ve chat modunda ise yerel yanıtlar kullan
+    if (modelType === "chat" && isEnglishResponse(responseText)) {
+      console.warn("English response from API, using Turkish fallback responses.");
+      return getFallbackResponse(message, modelType);
+    }
+    
+    return responseText;
   } catch (error) {
     console.error("Error calling Hugging Face API:", error);
     return getFallbackResponse(message, modelType);
   }
+}
+
+// Yanıtın İngilizce olup olmadığını kontrol et
+function isEnglishResponse(text: string): boolean {
+  // İngilizce dilinde yaygın olan kelimeler
+  const englishWords = ["the", "is", "and", "in", "to", "a", "of", "for", "my", "i", "you", "that", "it", "with"];
+  const lowercaseText = text.toLowerCase();
+  
+  // İngilizce kelimeler yanıtta ne kadar yaygın kullanılıyor?
+  let englishWordCount = 0;
+  for (const word of englishWords) {
+    if (lowercaseText.includes(` ${word} `) || lowercaseText.startsWith(`${word} `)) {
+      englishWordCount++;
+    }
+  }
+  
+  // Türkçe karakterler içeriyorsa muhtemelen Türkçedir
+  const containsTurkishChars = /[şŞğĞüÜçÇöÖıİ]/.test(text);
+  
+  // Eğer Türkçe karakterler varsa veya çok az İngilizce kelime varsa Türkçedir
+  return !containsTurkishChars && englishWordCount >= 2;
 }
 
 // Model detayları için tip tanımı
@@ -317,38 +365,75 @@ export async function getModelDetailResponse(modelId: string): Promise<{ feature
   };
 }
 
-// API anahtarı yokken kullanılacak hazır yanıtlar
+// API anahtarı yokken veya API yanıt vermediğinde kullanılacak hazır yanıtlar
 function getFallbackResponse(message: string, modelType: string = "chat"): string {
   const normalizedMessage = message.toLowerCase();
   
   // Model türüne göre farklı yanıtlar
   if (modelType === "chat") {
-    if (normalizedMessage.includes("hava") || normalizedMessage.includes("hava durumu")) {
-      return "İstanbul'da bugün hava parçalı bulutlu, sıcaklık 22 derece civarında olacak. Öğleden sonra hafif yağmur ihtimali var. Dışarı çıkarken şemsiye almanızda fayda var.";
-    }
-    
-    if (normalizedMessage.includes("tansiyon")) {
-      return "Yüksek tansiyonu kontrol altında tutmak için tuz tüketimini azaltmak, düzenli egzersiz yapmak ve stresten uzak durmak önemlidir. Doktorunuzun önerdiği ilaçları düzenli kullanmayı unutmayın. Ancak bu bilgiler genel tavsiyedir, mutlaka doktorunuza danışmalısınız.";
-    }
-    
-    if (normalizedMessage.includes("yemek") || normalizedMessage.includes("tarif") || normalizedMessage.includes("akşam yemeği")) {
-      return "Kolay ve lezzetli bir akşam yemeği için fırında sebzeli tavuk yapabilirsiniz. Tavuk göğsünü dilimleyip, yanına patates, havuç ve biber ekleyin. Üzerine zeytinyağı, tuz ve baharat serpin. 180 derecede 40 dakika pişirin. Yanında yoğurt ile servis edebilirsiniz.";
-    }
-    
+    // Genel selamlaşmalar
     if (normalizedMessage.includes("merhaba") || normalizedMessage.includes("selam")) {
       return "Merhaba! Size nasıl yardımcı olabilirim?";
     }
     
-    if (normalizedMessage.includes("teşekkür")) {
+    if (normalizedMessage.includes("nasılsın") || normalizedMessage.includes("naber")) {
+      return "İyiyim, teşekkür ederim! Size bugün nasıl yardımcı olabilirim?";
+    }
+    
+    if (normalizedMessage.includes("teşekkür") || normalizedMessage.includes("sağol")) {
       return "Rica ederim! Başka bir konuda yardıma ihtiyacınız olursa bana sorabilirsiniz.";
     }
     
-    if (normalizedMessage.includes("hasta") || normalizedMessage.includes("doktor")) {
+    // Hava durumu soruları
+    if (normalizedMessage.includes("hava") || normalizedMessage.includes("hava durumu")) {
+      return "İstanbul'da bugün hava parçalı bulutlu, sıcaklık 22 derece civarında olacak. Öğleden sonra hafif yağmur ihtimali var. Dışarı çıkarken şemsiye almanızda fayda var.";
+    }
+    
+    // Sağlık soruları
+    if (normalizedMessage.includes("tansiyon") || normalizedMessage.includes("tansiyon")) {
+      return "Yüksek tansiyonu kontrol altında tutmak için tuz tüketimini azaltmak, düzenli egzersiz yapmak ve stresten uzak durmak önemlidir. Doktorunuzun önerdiği ilaçları düzenli kullanmayı unutmayın. Ancak bu bilgiler genel tavsiyedir, mutlaka doktorunuza danışmalısınız.";
+    }
+    
+    if (normalizedMessage.includes("hasta") || normalizedMessage.includes("doktor") || normalizedMessage.includes("grip")) {
       return "Kendinizi iyi hissetmiyorsanız, doktorunuza başvurmanızı öneririm. Tıbbi konularda size sadece genel bilgiler verebilirim, teşhis koyamam.";
     }
     
+    // Yemek tarifleri
+    if (normalizedMessage.includes("yemek") || normalizedMessage.includes("tarif") || normalizedMessage.includes("akşam yemeği")) {
+      return "Kolay ve lezzetli bir akşam yemeği için fırında sebzeli tavuk yapabilirsiniz. Tavuk göğsünü dilimleyip, yanına patates, havuç ve biber ekleyin. Üzerine zeytinyağı, tuz ve baharat serpin. 180 derecede 40 dakika pişirin. Yanında yoğurt ile servis edebilirsiniz.";
+    }
+    
+    // İstanbul hakkında
+    if (normalizedMessage.includes("istanbul") && (normalizedMessage.includes("yer") || normalizedMessage.includes("mekan") || normalizedMessage.includes("gez"))) {
+      return "İstanbul'da gezilecek birçok tarihi yer var. Ayasofya, Topkapı Sarayı, Sultanahmet Camii (Mavi Cami), Kapalı Çarşı ve Galata Kulesi en popüler yerlerden bazıları. Ayrıca Boğaz turu yapmak ve Adalar'ı ziyaret etmek de güzel bir deneyim olacaktır.";
+    }
+    
+    // Türk mutfağı
+    if (normalizedMessage.includes("türk yemek") || normalizedMessage.includes("türk mutfağı")) {
+      return "Türk mutfağı dünyanın en zengin mutfaklarından biridir. Kebaplar, köfteler, dolmalar, börekler, baklavalar ve lokmalar en bilinen Türk yemekleridir. Ayrıca Türk kahvesi ve çay kültürü de dünyaca ünlüdür.";
+    }
+    
+    // Teknoloji soruları
+    if (normalizedMessage.includes("bilgisayar") || normalizedMessage.includes("telefon") || normalizedMessage.includes("teknoloji")) {
+      return "Teknoloji kullanımında zorluk yaşıyorsanız, adım adım ilerlemek en iyisidir. Temel işlevleri öğrenerek başlayın ve yavaş yavaş ilerleyin. İnternet üzerinde birçok eğitim videosu bulabilirsiniz. Ayrıca yakınlarınızdan da yardım isteyebilirsiniz.";
+    }
+    
+    // İnternet ve sosyal medya
+    if (normalizedMessage.includes("internet") || normalizedMessage.includes("sosyal medya") || normalizedMessage.includes("facebook")) {
+      return "İnternet ve sosyal medya platformları günümüzde iletişim için çok önemli araçlardır. Ancak güvenliğiniz için şifrelerinizi kimseyle paylaşmayın, tanımadığınız kişilerden gelen arkadaşlık isteklerini kabul etmeyin ve kişisel bilgilerinizi sınırlı paylaşın.";
+    }
+    
+    // Genel bilgiler
+    if (normalizedMessage.includes("türkiye") && normalizedMessage.includes("başkent")) {
+      return "Türkiye'nin başkenti Ankara'dır.";
+    }
+    
+    if (normalizedMessage.includes("atatürk")) {
+      return "Mustafa Kemal Atatürk, Türkiye Cumhuriyeti'nin kurucusu ve ilk cumhurbaşkanıdır. 1881'de Selanik'te doğmuş, 10 Kasım 1938'de İstanbul'da vefat etmiştir.";
+    }
+    
     // Varsayılan yanıt
-    return "Bu konuda size yardımcı olmak için daha fazla bilgiye ihtiyacım var. Lütfen sorunuzu biraz daha açıklayabilir misiniz?";
+    return "Bu konuda size yardımcı olmak için elimden geleni yapacağım. Lütfen sorunuzu biraz daha açıklayabilir misiniz?";
   } 
   else if (modelType === "code") {
     return "İşte istediğiniz kod örneği:\n\n```javascript\n// Basit bir sayaç uygulaması\nlet count = 0;\n\nfunction increment() {\n  count++;\n  updateDisplay();\n}\n\nfunction decrement() {\n  if (count > 0) {\n    count--;\n    updateDisplay();\n  }\n}\n\nfunction updateDisplay() {\n  document.getElementById('counter').textContent = count;\n}\n```\n\nBu kodu HTML dosyanıza ekleyip, butona tıklama olaylarını bağlayarak kullanabilirsiniz.";
