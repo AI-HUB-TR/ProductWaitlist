@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { 
   Menu, 
   Bot, 
@@ -14,8 +14,6 @@ import {
   MessageSquare,
   Settings,
   BookOpen,
-  Sparkles,
-  Globe,
   Gamepad
 } from "lucide-react";
 import {
@@ -28,11 +26,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LanguageSwitcher } from "@/components/translation/LanguageSwitcher";
 import TechConfidenceMeter from "@/components/common/TechConfidenceMeter";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Header() {
   const [location] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Örnek için, gerçek uygulamada auth hook'undan gelecek
+  const { user, logoutMutation } = useAuth();
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -53,7 +52,7 @@ export default function Header() {
   ];
 
   // Yönetici yetkisi varsa
-  if (isLoggedIn) {
+  if (user && user.role === 'admin') {
     navItems.push({ name: "Yönetim", id: "admin", path: "/admin", icon: <Settings className="h-4 w-4 mr-2" /> });
   }
 
@@ -74,13 +73,12 @@ export default function Header() {
 
   const handleLogin = () => {
     // Örnek, gerçekte authentication sayfasına yönlendirilecek
-    setIsLoggedIn(true);
-    setIsMenuOpen(false);
+    window.location.href = "/auth";
   };
 
   const handleLogout = () => {
-    // Örnek, gerçekte logout API'si çağrılacak
-    setIsLoggedIn(false);
+    // Logout API'si çağrılır
+    logoutMutation.mutate();
   };
 
   return (
@@ -88,20 +86,18 @@ export default function Header() {
       {/* Top Bar - Bilgi Paneli */}
       <div className="bg-[#1565C0] text-white py-1">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="hidden sm:flex items-center space-x-4">
-              <div className="flex items-center">
-                <span className="mr-2 text-xs font-medium">Başlangıç</span>
-              </div>
-              <div className="flex items-center">
-                <span className="mr-2 text-xs font-medium">2/8 Başarı</span>
-              </div>
-              <div className="flex items-center">
-                <span className="mr-2 text-xs font-medium">Uzman</span>
-              </div>
-              <div className="hidden md:flex items-center">
-                <span className="mr-2 text-xs font-medium">Son Başarı: 💬 İlk Sohbet</span>
-              </div>
+          <div className="hidden sm:flex items-center space-x-4 text-sm">
+            <div className="flex items-center">
+              <span className="mr-2 text-xs font-medium">Başlangıç</span>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-2 text-xs font-medium">2/8 Başarı</span>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-2 text-xs font-medium">Uzman</span>
+            </div>
+            <div className="hidden md:flex items-center">
+              <span className="mr-2 text-xs font-medium">Son Başarı: 💬 İlk Sohbet</span>
             </div>
           </div>
           
@@ -136,12 +132,12 @@ export default function Header() {
           </nav>
           
           <div className="hidden md:flex items-center space-x-3">
-            {isLoggedIn ? (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="flex items-center border-[#1565C0] border text-[#1565C0]">
                     <User className="h-4 w-4 mr-2" />
-                    <span>Hesabım</span>
+                    <span>{user.name ? user.name.split(' ')[0] : 'Hesabım'}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -163,26 +159,13 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    className="bg-[#1565C0] hover:bg-[#0D47A1] text-white"
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Hesap
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handleLogin}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    <span>Giriş Yap</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogin}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    <span>Üye Ol</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button 
+                className="bg-[#1565C0] hover:bg-[#0D47A1] text-white"
+                onClick={handleLogin}
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Hesap
+              </Button>
             )}
           </div>
           
@@ -209,7 +192,7 @@ export default function Header() {
             ))}
             
             <div className="mt-4 pt-4 border-t border-gray-200">
-              {isLoggedIn ? (
+              {user ? (
                 <>
                   <div className="mb-2 text-sm text-muted-foreground">Hesap İşlemleri</div>
                   <Button variant="outline" className="w-full justify-start mb-2">
@@ -237,11 +220,8 @@ export default function Header() {
                     onClick={handleLogin}
                   >
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Hesap İşlemleri
+                    Giriş Yap / Üye Ol
                   </Button>
-                  <div className="text-xs text-muted-foreground mt-2 text-center">
-                    Giriş yapmak veya yeni üyelik oluşturmak için tıklayın
-                  </div>
                 </>
               )}
             </div>

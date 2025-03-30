@@ -16,8 +16,10 @@ import CommunityPage from "@/pages/community/CommunityPage";
 import SkillQuestPage from "@/pages/learning/SkillQuestPage";
 import AIMascot from "@/components/mascot/AIMascot";
 import HelpButton from "@/components/common/HelpButton";
+import AuthPage from "@/pages/auth-page";
 import { SoundProvider } from "@/hooks/use-sound-effects";
 import { AutoTranslateProvider } from "@/components/translation/LanguageSwitcher";
+import { AuthProvider } from "@/hooks/use-auth";
 
 function Router() {
   const [loaded, setLoaded] = useState(false);
@@ -84,6 +86,7 @@ function Router() {
           <Route path="/games/memory" component={MemoryGame} />
           <Route path="/community" component={CommunityPage} />
           <Route path="/learning/skills" component={SkillQuestPage} />
+          <Route path="/auth" component={AuthPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
@@ -98,12 +101,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <SoundProvider>
-        <AutoTranslateProvider>
-          <Router />
-          <Toaster />
-        </AutoTranslateProvider>
-      </SoundProvider>
+      <AuthProvider>
+        <SoundProvider>
+          <AutoTranslateProvider>
+            <Router />
+            <Toaster />
+          </AutoTranslateProvider>
+        </SoundProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

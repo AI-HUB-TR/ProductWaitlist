@@ -3,8 +3,16 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { WaitlistEntry, Contact, insertWaitlistSchema, insertContactSchema } from "@shared/schema";
 import { getHuggingFaceResponse, getModelDetailResponse } from "./huggingface";
+import { setupAuth } from "./auth";
+import { initializeDatabase } from "./database";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Veritabanını başlat
+  await initializeDatabase();
+  
+  // Auth sistemini kur
+  setupAuth(app);
+  
   // API routes
   
   // Chat endpoint - sends messages to Hugging Face API
