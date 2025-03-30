@@ -39,6 +39,8 @@ export default function Header() {
   const navItems = [
     { name: "Anasayfa", id: "anasayfa", path: "/", icon: <Home className="h-4 w-4 mr-2" /> },
     { name: "Nasıl Çalışır?", id: "nasil-calisir", path: "/#nasil-calisir", icon: <HelpCircle className="h-4 w-4 mr-2" /> },
+    { name: "Hafıza Oyunu", id: "games", path: "/games/memory", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
+    { name: "Topluluk", id: "community", path: "/community", icon: <User className="h-4 w-4 mr-2" /> },
     { name: "SSS", id: "sss", path: "/#sss", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
     { name: "İletişim", id: "iletisim", path: "/#iletisim", icon: <MessageSquare className="h-4 w-4 mr-2" /> },
   ];

@@ -1,116 +1,110 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from 'react';
 
+// Konuşma sentezleyici için hook
 export function useSpeech() {
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
-  const [recognition, setRecognition] = useState<any>(null);
-  
+  const [isPaused, setIsPaused] = useState(false);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Tarayıcı desteğini kontrol et ve sentezleyiciyi başlat
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSpeechSynthesis(window.speechSynthesis);
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      synthRef.current = window.speechSynthesis;
       
-      // Set up speech recognition
-      const SpeechRecognition = (window as any).SpeechRecognition || 
-                              (window as any).webkitSpeechRecognition;
-                              
-      if (SpeechRecognition) {
-        const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = false;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang = 'tr-TR';
-        
-        recognitionInstance.onresult = (event: any) => {
-          const result = event.results[0];
-          if (result.isFinal) {
-            setTranscript(result[0].transcript);
-          }
-        };
-        
-        recognitionInstance.onend = () => {
-          setIsListening(false);
-        };
-        
-        recognitionInstance.onerror = (event: any) => {
-          console.error("Speech recognition error", event.error);
-          setIsListening(false);
-        };
-        
-        setRecognition(recognitionInstance);
+      // Mevcut sesleri al
+      const loadVoices = () => {
+        const availableVoices = synthRef.current?.getVoices() || [];
+        setVoices(availableVoices);
+      };
+      
+      // Chrome ve diğer tarayıcılar için farklı olay dinleyicileri
+      if (synthRef.current.onvoiceschanged !== undefined) {
+        synthRef.current.onvoiceschanged = loadVoices;
       }
+      
+      loadVoices();
+      
+      // Temizleme fonksiyonu
+      return () => {
+        if (synthRef.current && utteranceRef.current) {
+          synthRef.current.cancel();
+        }
+      };
     }
   }, []);
   
-  const startListening = useCallback(() => {
-    if (!recognition) return;
+  // Konuşmayı başlat
+  const speak = useCallback((text: string, options: { rate?: number; pitch?: number; voice?: SpeechSynthesisVoice } = {}) => {
+    if (!synthRef.current) return;
     
-    try {
-      recognition.start();
-      setIsListening(true);
-      setTranscript("");
-    } catch (error) {
-      console.error("Error starting speech recognition:", error);
+    // Mevcut konuşmayı durdur
+    if (utteranceRef.current && synthRef.current.speaking) {
+      synthRef.current.cancel();
     }
-  }, [recognition]);
-  
-  const stopListening = useCallback(() => {
-    if (!recognition) return;
     
-    try {
-      recognition.stop();
-      setIsListening(false);
-    } catch (error) {
-      console.error("Error stopping speech recognition:", error);
-    }
-  }, [recognition]);
-  
-  const toggleVoice = useCallback(() => {
-    setIsVoiceEnabled(prev => !prev);
-    
-    // If disabling voice, stop any ongoing speech
-    if (isVoiceEnabled && speechSynthesis) {
-      speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  }, [isVoiceEnabled, speechSynthesis]);
-  
-  const speak = useCallback((text: string) => {
-    if (!isVoiceEnabled || !speechSynthesis) return;
-    
-    // Cancel any ongoing speech
-    speechSynthesis.cancel();
-    
+    // Yeni bir konuşma oluştur
     const utterance = new SpeechSynthesisUtterance(text);
+    utteranceRef.current = utterance;
     
-    // Try to find a Turkish voice
-    const voices = speechSynthesis.getVoices();
-    const turkishVoice = voices.find(voice => voice.lang === 'tr-TR');
+    // Türkçe ses için en uygun sesi bul
+    const turkishVoice = voices.find(voice => 
+      voice.lang.includes('tr') || voice.lang.includes('TR')
+    );
     
-    if (turkishVoice) {
-      utterance.voice = turkishVoice;
-    }
+    // Opsiyonları ayarla
+    utterance.voice = options.voice || turkishVoice || voices[0];
+    utterance.rate = options.rate || 1;
+    utterance.pitch = options.pitch || 1;
     
-    utterance.lang = 'tr-TR';
-    utterance.rate = 0.9; // Slightly slower for better comprehension
-    utterance.pitch = 1;
-    
+    // Olayları dinle
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onpause = () => setIsPaused(true);
+    utterance.onresume = () => setIsPaused(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setIsPaused(false);
+    };
     
-    speechSynthesis.speak(utterance);
-  }, [isVoiceEnabled, speechSynthesis]);
+    // Konuşmayı başlat
+    synthRef.current.speak(utterance);
+  }, [voices]);
+  
+  // Konuşmayı duraklat
+  const pauseSpeech = useCallback(() => {
+    if (synthRef.current && isSpeaking && !isPaused) {
+      synthRef.current.pause();
+      setIsPaused(true);
+    }
+  }, [isSpeaking, isPaused]);
+  
+  // Konuşmayı devam ettir
+  const resumeSpeech = useCallback(() => {
+    if (synthRef.current && isPaused) {
+      synthRef.current.resume();
+      setIsPaused(false);
+    }
+  }, [isPaused]);
+  
+  // Konuşmayı iptal et
+  const cancelSpeech = useCallback(() => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+      setIsPaused(false);
+    }
+  }, []);
   
   return {
     speak,
+    pauseSpeech,
+    resumeSpeech,
+    cancelSpeech,
     isSpeaking,
-    isVoiceEnabled,
-    toggleVoice,
-    startListening,
-    stopListening,
-    isListening,
-    transcript
+    isPaused,
+    voices,
+    supported: typeof window !== 'undefined' && !!window.speechSynthesis
   };
 }
