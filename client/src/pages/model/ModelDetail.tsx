@@ -68,6 +68,35 @@ export default function ModelDetail() {
       return data.message;
     },
     onSuccess: (response) => {
+      // Yanıt içinde hata kodu olup olmadığını kontrol et
+      if (typeof response === 'string' && 
+          (response === "API_ERROR" || 
+           response === "ERROR_GENERATING_IMAGE" || 
+           response === "ERROR_PROCESSING_IMAGE" || 
+           response === "ERROR_EMPTY_RESPONSE" ||
+           response === "API_KEY_MISSING")) {
+        // Hata mesajını kullanıcıya göster
+        let errorMessage = "Üzgünüm, bir hata oluştu.";
+        
+        if (response === "API_KEY_MISSING") {
+          errorMessage = "API anahtarı eksik. Lütfen sistem yöneticisine başvurun.";
+        } else if (response === "ERROR_GENERATING_IMAGE") {
+          errorMessage = "Görsel oluşturulurken bir sorun oluştu. Lütfen farklı bir açıklama deneyin.";
+        } else {
+          errorMessage = "Bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+        }
+        
+        setChatHistory(prev => [
+          ...prev,
+          {
+            role: "system",
+            content: errorMessage,
+            timestamp: new Date()
+          }
+        ]);
+        return;
+      }
+      
       // Yanıtı sohbet geçmişine ekle
       setChatHistory(prev => [
         ...prev,
@@ -271,7 +300,22 @@ export default function ModelDetail() {
                         }
                       `}
                     >
-                      <p>{message.content}</p>
+                      {model.id === "image-ai" && message.role === "system" && message.content.startsWith("data:image") ? (
+                        <div className="w-full">
+                          <div className="relative aspect-square w-full max-w-md mx-auto">
+                            <img 
+                              src={message.content} 
+                              alt="Oluşturulan görsel" 
+                              className="rounded-md object-cover shadow-md border border-gray-200"
+                            />
+                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md">
+                              Stable Diffusion XL
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p>{message.content}</p>
+                      )}
                       
                       {message.role === "system" && (
                         <Button
