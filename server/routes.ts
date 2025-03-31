@@ -24,13 +24,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Geçerli bir mesaj gereklidir." });
       }
       
-      // Get response from Hugging Face API
-      const response = await getHuggingFaceResponse(message, modelType || "chat");
+      console.log(`Processing ${modelType || "chat"} request: "${message.substring(0, 100)}${message.length > 100 ? '...' : ''}"`);
+      
+      // Görsel oluşturma için maksimum timeout ayarla (2 dakika)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("API timeout")), modelType === "image" ? 120000 : 30000)
+      );
+      
+      // Get response from Hugging Face API with timeout control
+      const responsePromise = getHuggingFaceResponse(message, modelType || "chat");
+      let response;
+      
+      try {
+        response = await Promise.race([responsePromise, timeoutPromise]);
+      } catch (timeoutError) {
+        console.error("API request timed out:", timeoutError);
+        return res.status(408).json({ 
+          message: "İstek zaman aşımına uğradı. Lütfen daha sonra tekrar deneyin.",
+          error: "TIMEOUT_ERROR"
+        });
+      }
       
       // Özel görsel yanıtı işleme
       if (modelType === "image") {
+        // Görsel oluşturma hata kodları
+        const errorCodes = [
+          "API_KEY_MISSING", 
+          "API_ERROR", 
+          "ERROR_GENERATING_IMAGE", 
+          "ERROR_EMPTY_RESPONSE",
+          "ERROR_PROCESSING_IMAGE"
+        ];
+        
         // Görsel oluşturma hatası varsa
-        if (response === "API_KEY_MISSING" || response === "API_ERROR" || response === "ERROR_GENERATING_IMAGE") {
+        if (typeof response === 'string' && errorCodes.includes(response)) {
+          console.error(`Image generation error: ${response}`);
           return res.status(400).json({ 
             message: "Görsel oluşturulamadı. Lütfen farklı bir açıklama deneyin veya daha sonra tekrar deneyin.",
             error: response
@@ -38,11 +66,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Base64 tam değil - kırpılmış bir yanıt mı kontrol et
-        if (response && response.startsWith("data:image/jpeg;base64,") && response.length < 500) {
-          return res.status(400).json({ 
-            message: "Görsel veri eksik. Lütfen daha sonra tekrar deneyin.",
-            error: "INCOMPLETE_IMAGE_DATA"
-          });
+        if (typeof response === 'string' && response.startsWith("data:image/jpeg;base64,")) {
+          const base64Data = response.split(",")[1];
+          
+          if (!base64Data || base64Data.length < 1000) {
+            console.error(`Invalid image data received, length: ${base64Data ? base64Data.length : 0}`);
+            return res.status(400).json({ 
+              message: "Görsel veri geçersiz veya eksik. Lütfen daha sonra tekrar deneyin.",
+              error: "INCOMPLETE_IMAGE_DATA"
+            });
+          }
+          
+          console.log(`Successfully generated image, data length: ${base64Data.length}`);
         }
       }
       

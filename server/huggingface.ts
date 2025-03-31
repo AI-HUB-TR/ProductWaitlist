@@ -42,15 +42,38 @@ export async function getHuggingFaceResponse(
           return "API_KEY_MISSING";
         }
         
+        // Stable Diffusion XL modeli için görsel oluşturma parametreleri
         const modelUrl = MODEL_URLS[modelType];
         
-        const response = await fetch(modelUrl, {
+        // Türkçe karakterleri destekleyen SDXL prompt formatı
+        const formattedPrompt = message.trim();
+        console.log(`Processing image request: "${formattedPrompt}"`);
+        
+        // Farklı bir model kullanarak daha iyi Türkçe destek sağlayalım
+        const imageModel = "stabilityai/stable-diffusion-xl-base-1.0";
+        const imageModelUrl = `https://api-inference.huggingface.co/models/${imageModel}`;
+        
+        console.log(`Generating image with prompt: "${formattedPrompt}"`);
+        
+        const response = await fetch(imageModelUrl, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${HUGGING_FACE_API_KEY}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ inputs: message }),
+          // Negative prompt ve diğer gelişmiş ayarlar
+          body: JSON.stringify({ 
+            inputs: formattedPrompt,
+            parameters: {
+              negative_prompt: "blurry, bad quality, distorted, deformed, ugly, bad anatomy, out of frame, duplicate, watermark, signature, text",
+              num_inference_steps: 50, // Daha kaliteli sonuçlar için adım sayısını arttırdık
+              guidance_scale: 8.0,
+              width: 768,
+              height: 768
+            }
+          }),
+          // Uzun sürebileceği için 60 saniye timeout ekliyoruz
+          signal: AbortSignal.timeout(60000)
         });
         
         if (!response.ok) {
@@ -58,10 +81,31 @@ export async function getHuggingFaceResponse(
           return "API_ERROR";
         }
         
-        // Görsel yanıtı için bir base64 dizesi veya URL döndür
-        const buffer = await response.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString('base64');
-        return `data:image/jpeg;base64,${base64}`;
+        try {
+          // Görsel yanıtı buffer olarak alıp tam olarak base64'e çevirme
+          const buffer = await response.arrayBuffer();
+          
+          if (!buffer || buffer.byteLength === 0) {
+            console.error("Received empty buffer from image API");
+            return "ERROR_EMPTY_RESPONSE";
+          }
+          
+          // Buffer'dan base64'e dönüştürme
+          const base64 = Buffer.from(buffer).toString('base64');
+          console.log(`Image generated successfully, base64 length: ${base64.length}`);
+          
+          // Geçerli bir görsel base64 verisi olup olmadığını kontrol et
+          if (base64.length < 1000) {
+            console.error("Generated image base64 is suspiciously short:", base64);
+            return "ERROR_GENERATING_IMAGE";
+          }
+          
+          console.log("Successfully generated image, data length:", base64.length);
+          return `data:image/jpeg;base64,${base64}`;
+        } catch (bufferError) {
+          console.error("Error processing image buffer:", bufferError);
+          return "ERROR_PROCESSING_IMAGE";
+        }
       } catch (error) {
         console.error("Error with image generation:", error);
         return "ERROR_GENERATING_IMAGE";
