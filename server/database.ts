@@ -96,7 +96,7 @@ export async function createInitialAdminUser() {
 export async function initializeDatabase() {
   try {
     await migrateDb();
-    // await createInitialAdminUser(); // Gerekirse açılabilir
+    await createInitialAdminUser();
   } catch (error) {
     console.error("❌ Database initialization failed:", error);
   }
