@@ -45,15 +45,57 @@ export async function getHuggingFaceResponse(
         // Stable Diffusion XL modeli için görsel oluşturma parametreleri
         const modelUrl = MODEL_URLS[modelType];
         
-        // Türkçe karakterleri destekleyen SDXL prompt formatı
-        const formattedPrompt = message.trim();
+        // Türkçe prompt'u İngilizce'ye çevirme (basit kelime eşleştirmeleri)
+        let formattedPrompt = message.trim();
         console.log(`Processing image request: "${formattedPrompt}"`);
+        
+        // Türkçe-İngilizce çeviri sözlüğü (en yaygın görsel terimleri)
+        const translationMap: Record<string, string> = {
+          // Renkler
+          "kırmızı": "red", "mavi": "blue", "yeşil": "green", "sarı": "yellow",
+          "siyah": "black", "beyaz": "white", "mor": "purple", "turuncu": "orange",
+          "pembe": "pink", "gri": "gray", "kahverengi": "brown",
+          
+          // Genel nesneler
+          "balon": "balloon", "araba": "car", "ev": "house", "ağaç": "tree",
+          "çiçek": "flower", "köpek": "dog", "kedi": "cat", "insan": "human",
+          "kadın": "woman", "erkek": "man", "çocuk": "child", "bebek": "baby",
+          "gökyüzü": "sky", "güneş": "sun", "ay": "moon", "yıldız": "star",
+          "deniz": "sea", "okyanus": "ocean", "dağ": "mountain", "nehir": "river",
+          "yol": "road", "bilgisayar": "computer", "telefon": "phone",
+          "masa": "table", "sandalye": "chair", "kitap": "book",
+          
+          // Fiiller ve sıfatlar
+          "büyük": "large", "küçük": "small", "güzel": "beautiful", "çirkin": "ugly",
+          "hızlı": "fast", "yavaş": "slow", "eski": "old", "yeni": "new",
+          "koşan": "running", "yürüyen": "walking", "uçan": "flying", "atlayan": "jumping",
+          "uyuyan": "sleeping", "gülen": "smiling", "ağlayan": "crying",
+          "oturan": "sitting", "duran": "standing", "yatan": "lying", 
+          "çalan": "playing", "söyleyen": "singing", "dans eden": "dancing",
+          "piyano": "piano", "gitar": "guitar", "keman": "violin",
+          
+          // Türkçeye özgü karakterler
+          "ş": "s", "ğ": "g", "ü": "u", "ö": "o", "ç": "c", "ı": "i"
+        };
+        
+        // Türkçe prompt'u İngilizce'ye çevir
+        let englishPrompt = formattedPrompt.toLowerCase();
+        
+        // Kelime kelime çeviri yap
+        Object.keys(translationMap).forEach(turkishWord => {
+          const pattern = new RegExp(`\\b${turkishWord}\\b`, 'gi');
+          englishPrompt = englishPrompt.replace(pattern, translationMap[turkishWord]);
+        });
+        
+        // Stili ve kaliteyi belirten İngilizce eklemeler yap
+        englishPrompt = `${englishPrompt}, high quality, detailed, vibrant colors, photography`;
+        
+        console.log(`Translated prompt: "${englishPrompt}"`);
+        console.log(`Generating image with prompt: "${englishPrompt}"`);
         
         // Farklı bir model kullanarak daha iyi Türkçe destek sağlayalım
         const imageModel = "stabilityai/stable-diffusion-xl-base-1.0";
         const imageModelUrl = `https://api-inference.huggingface.co/models/${imageModel}`;
-        
-        console.log(`Generating image with prompt: "${formattedPrompt}"`);
         
         const response = await fetch(imageModelUrl, {
           method: "POST",
@@ -63,7 +105,7 @@ export async function getHuggingFaceResponse(
           },
           // Negative prompt ve diğer gelişmiş ayarlar
           body: JSON.stringify({ 
-            inputs: formattedPrompt,
+            inputs: englishPrompt, // Çevrilmiş İngilizce versiyonu gönder
             parameters: {
               negative_prompt: "blurry, bad quality, distorted, deformed, ugly, bad anatomy, out of frame, duplicate, watermark, signature, text",
               num_inference_steps: 50, // Daha kaliteli sonuçlar için adım sayısını arttırdık
